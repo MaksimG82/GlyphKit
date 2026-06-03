@@ -108,9 +108,9 @@ struct GlyphLayoutResolverTests {
             path: path,
             font: ctFont
         )
-        let bottomLeft = CGPoint(x: bounds.minX, y: bounds.minY).applying(transform)
-        #expect(abs(bottomLeft.x) < 0.0001)
-        #expect(abs(bottomLeft.y) < 0.0001)
+        let transformedMin = CGPoint(x: bounds.minX, y: bounds.maxY).applying(transform)
+        #expect(abs(transformedMin.x) < 0.0001)
+        #expect(abs(transformedMin.y) < 0.0001)
     }
 
     // MARK: - transformPlacement

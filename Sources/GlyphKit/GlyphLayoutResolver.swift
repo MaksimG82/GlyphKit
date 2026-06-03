@@ -65,14 +65,22 @@ public enum GlyphLayoutResolver {
         font: CTFont
     ) -> CGAffineTransform {
         let bounds = path.boundingBoxOfPath
-        let verticalOffset = glyphOffsetFromBottom(sizing: sizing, path: path, font: font)
+        let internalSize = internalContainerSize(sizing: sizing, path: path, font: font)
 
-        let normalize = CGAffineTransform(
-            translationX: -bounds.minX,
-            y: -(bounds.minY + verticalOffset)
-        )
+        let normalizeX = -bounds.minX
+
+        let normalizeY: CGFloat
+        switch sizing {
+        case .tight:
+            normalizeY = -bounds.minY
+        case .fontMetrics:
+            normalizeY = CTFontGetDescent(font)
+        }
+
+        let normalize = CGAffineTransform(translationX: normalizeX, y: normalizeY)
 
         let flipY = CGAffineTransform(scaleX: 1, y: -1)
+            .translatedBy(x: 0, y: -internalSize.height)
 
         return normalize.concatenating(flipY)
     }
@@ -133,21 +141,6 @@ public enum GlyphLayoutResolver {
             let height = CTFontGetAscent(font) + CTFontGetDescent(font)
             let width = path.boundingBoxOfPath.width
             return CGSize(width: width, height: height)
-        }
-    }
-
-    /// Returns the vertical offset of the glyph path from the bottom of the internal container.
-    /// Only meaningful when `GlyphSizing` is `.fontMetrics`.
-    static func glyphOffsetFromBottom(
-        sizing: GlyphSizing,
-        path: CGPath,
-        font: CTFont
-    ) -> CGFloat {
-        switch sizing {
-        case .tight:
-            return 0
-        case .fontMetrics:
-            return path.boundingBoxOfPath.minY + CTFontGetDescent(font)
         }
     }
     

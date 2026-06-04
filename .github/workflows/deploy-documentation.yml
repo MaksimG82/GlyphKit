@@ -1,0 +1,41 @@
+name: DocC
+
+on:
+  push:
+    branches: ["main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+  
+
+jobs:
+  deploy:
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build DocC
+        run: |
+          xcodebuild docbuild \
+            -scheme GlyphKit \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath .build
+
+      - name: Find doccarchive
+        run: find .build -name "*.doccarchive"
+
+      - name: Process for GitHub Pages
+        run: |
+          $(xcrun --find docc) process-archive transform-for-static-hosting \
+            .build/Build/Products/Debug-iphoneos/GlyphKit.doccarchive \
+            --output-path docs \
+            --hosting-base-path GlyphKit
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          

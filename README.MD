@@ -11,13 +11,20 @@ Render any font glyph into a SwiftUI view with point-precise sizing — tight to
 
 ## Features
 
+**Core**
 - Extracts vector glyph outlines via Core Text — no UILabel, no text rendering pipeline
-- **Tight sizing** — glyph fills the container edge to edge, regardless of font metrics
-- **Typographic sizing** — glyph is placed relative to ascent and descent, preserving visual weight within the font
-- Point-precise control over glyph bounds
 - No baseline shifts, no Dynamic Type interference
-- Anchor and offset control for fine-grained placement
-- Ideal for grid-based layouts:  notebook-style arithmetic UI, symbol displays
+
+**Sizing**
+- Tight — glyph fills the container edge to edge, regardless of font metrics
+- Typographic — preserves visual weight within the font's vertical metrics
+
+**Placement**
+- Point-precise control over glyph bounds
+- Anchor and offset for fine-grained positioning
+
+**Use cases**
+- Grid-based layouts: notebook-style arithmetic UI, symbol displays
 
 ## Requirements
 
@@ -77,7 +84,7 @@ GlyphView("3",
 | `.fontMetrics` | Glyph is placed within the full ascent + descent range. Small symbols stay small, preserving their visual weight relative to other characters. |
 
 ## Use Case — Notebook Grid
-![Notebook Grid](Assets/Notebook Grid.png)
+![Notebook Grid](Assets/NotebookGrid.png)
 
 GlyphKit is well suited for grid-based educational UIs where glyphs must sit precisely within fixed cells — for example, an arithmetic notebook where digits and operators are rendered into a ruled or squared grid:
 
@@ -109,7 +116,7 @@ GlyphKit is well suited for grid-based educational UIs where glyphs must sit pre
 
 ## Documentation
 
-Full documentation is available at [MaksimG82.github.io/GlyphKit](https://maksimg82.github.io/GlyphKit/documentation/glyphkit/)
+Full documentation is available at [MaksimG82.github.io/GlyphKit](https://MaksimG82.github.io/GlyphKit)
 
 ## License
 

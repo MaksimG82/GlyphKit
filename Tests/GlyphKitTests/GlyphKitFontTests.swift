@@ -27,7 +27,7 @@ struct GlyphKitFontTests {
     
     /// Bold and italic variants should also resolve.
     @Test func systemFontBoldItalicResolves() {
-        let font = GlyphKitFont.system(.helveticaNeue, isBold: true, italic: true)
+        let font = GlyphKitFont.system(.helveticaNeue, isBold: true, isItalic: true)
         #expect(font.ctFont != nil)
     }
 }

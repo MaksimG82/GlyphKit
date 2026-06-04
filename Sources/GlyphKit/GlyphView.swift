@@ -70,7 +70,9 @@ public struct GlyphView: View {
     }
 }
 
-// MARK: - Preview
+// MARK: - Previews
+
+#if DEBUG
 
 #Preview("GlyphView — multiple") {
     let characters: [Character] = ["A", "g", "&", "3", "ß", "?"]
@@ -89,14 +91,14 @@ public struct GlyphView: View {
 
 #Preview("GlyphView — layout variants") {
     let items: [(Character, GlyphLayout, Color)] = [
-        ("=", GlyphLayout(sizing: .tight, anchor: .center, offset: .zero), .blue),
-        ("=", GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero), .blue),
-        ("'", GlyphLayout(sizing: .tight, anchor: .center, offset: .zero), .red),
-        ("'", GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero), .red),
-        (".", GlyphLayout(sizing: .tight, anchor: .center, offset: .zero), .green),
-        (".", GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero), .green),
-        (".", GlyphLayout(sizing: .fontMetrics, anchor: .bottom, offset: .zero), .orange),
-        (".", GlyphLayout(sizing: .fontMetrics, anchor: .bottomLeading,  offset: .zero), .purple),
+        ("=", GlyphLayout(sizing: .tight,       anchor: .center,        offset: .zero), .blue),
+        ("=", GlyphLayout(sizing: .fontMetrics, anchor: .center,        offset: .zero), .blue),
+        ("'", GlyphLayout(sizing: .tight,       anchor: .center,        offset: .zero), .red),
+        ("'", GlyphLayout(sizing: .fontMetrics, anchor: .center,        offset: .zero), .red),
+        (".", GlyphLayout(sizing: .tight,       anchor: .center,        offset: .zero), .green),
+        (".", GlyphLayout(sizing: .fontMetrics, anchor: .center,        offset: .zero), .green),
+        (".", GlyphLayout(sizing: .fontMetrics, anchor: .bottom,        offset: .zero), .orange),
+        (".", GlyphLayout(sizing: .fontMetrics, anchor: .bottomLeading, offset: .zero), .purple),
     ]
 
     return LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 4), spacing: 16) {
@@ -109,3 +111,57 @@ public struct GlyphView: View {
     }
     .padding()
 }
+
+#Preview("README — examples") {
+    HStack(spacing: 16) {
+        GlyphView("Å")
+            .frame(width: 80, height: 80)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+        GlyphView(".",
+            layout: GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero),
+            color: .orange
+        )
+        .frame(width: 80, height: 80)
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+
+        GlyphView("3",
+            font: .system(.georgia, isBold: true, isItalic: true),
+            layout: .default,
+            color: .blue
+        )
+        .frame(width: 80, height: 80)
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+    .padding()
+}
+
+#Preview("README — notebook grid") {
+    let items: [(Character, GlyphSizing)] = [
+        ("3", .tight),
+        ("=", .fontMetrics),
+        ("8", .tight)
+    ]
+
+    HStack(spacing: 0) {
+        ForEach(items, id: \.0) { digit, sizing in
+            GlyphView(digit,
+                font: .system(.georgia, isItalic: true),
+                layout: GlyphLayout(
+                    sizing: sizing,
+                    anchor: sizing == .tight ? .trailing : .center,
+                    offset: .zero
+                ),
+                color: .primary
+            )
+            .frame(width: 56, height: 56)
+            .border(Color(.systemGray4), width: 0.5)
+        }
+    }
+    .padding()
+}
+
+#endif

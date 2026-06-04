@@ -36,9 +36,9 @@ public enum GlyphKitFont: Sendable {
     }
 
     /// A built-in system font with optional bold and italic style.
-    case system(SystemFont, isBold: Bool = false, italic: Bool = false)
+    case system(SystemFont, isBold: Bool = false, isItalic: Bool = false)
     /// A custom font registered in the app bundle, referenced by PostScript name.
-    case custom(String, isBold: Bool = false, italic: Bool = false)
+    case custom(String, isBold: Bool = false, isItalic: Bool = false)
 
     /// The default font: San Francisco, non-bold, non-italic.
     public static let `default` = GlyphKitFont.system(.sanFrancisco)
@@ -46,12 +46,12 @@ public enum GlyphKitFont: Sendable {
     /// Returns a `CTFont` for internal glyph path extraction.
     var ctFont: CTFont? {
         switch self {
-        case .system(let systemFont, let isBold, let italic):
+        case .system(let systemFont, let isBold, let isItalic):
             let uiFont = resolveSystemFont(systemFont)
-            return applyStyle(to: uiFont, isBold: isBold, italic: italic)
-        case .custom(let name, let isBold, let italic):
+            return applyStyle(to: uiFont, isBold: isBold, isItalic: isItalic)
+        case .custom(let name, let isBold, let isItalic):
             guard let uiFont = UIFont(name: name, size: extractionSize) else { return nil }
-            return applyStyle(to: uiFont, isBold: isBold, italic: italic)
+            return applyStyle(to: uiFont, isBold: isBold, isItalic: isItalic)
         }
     }
 
@@ -89,10 +89,10 @@ public enum GlyphKitFont: Sendable {
     }
 
     /// Applies bold and italic traits to a `UIFont` and returns it as `CTFont`.
-    private func applyStyle(to font: UIFont, isBold: Bool, italic: Bool) -> CTFont {
+    private func applyStyle(to font: UIFont, isBold: Bool, isItalic: Bool) -> CTFont {
         var traits = UIFontDescriptor.SymbolicTraits()
         if isBold { traits.insert(.traitBold) }
-        if italic { traits.insert(.traitItalic) }
+        if isItalic { traits.insert(.traitItalic) }
         let descriptor = font.fontDescriptor.withSymbolicTraits(traits) ?? font.fontDescriptor
         return CTFontCreateWithFontDescriptor(descriptor as CTFontDescriptor, extractionSize, nil)
     }

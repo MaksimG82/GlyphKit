@@ -109,7 +109,7 @@ GlyphKit is well suited for grid-based educational UIs where glyphs must sit pre
 
 ## Documentation
 
-Full documentation is available at [MaksimG82.github.io/GlyphKit](https://MaksimG82.github.io/GlyphKit)
+Full documentation is available at [MaksimG82.github.io/GlyphKit](https://maksimg82.github.io/GlyphKit/documentation/glyphkit/)
 
 ## License
 

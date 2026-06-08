@@ -22,13 +22,35 @@ import SwiftUI
 /// These two concerns are independent but together fully describe
 /// how a glyph occupies its external container.
 public struct GlyphLayout: Sendable {
+    
+    /// Determines how the glyph path is sized within its internal container.
     public var sizing: GlyphSizing
+
+    /// The anchor point within the external container. Use `UnitPoint` presets such as `.center`, `.topLeading`, etc.
     public var anchor: UnitPoint
+
+    /// Additional offset in points applied after anchor placement. Positive x moves right, positive y moves down.
     public var offset: CGPoint
 
+    /// A centered glyph with tight sizing and no offset.
     public static let `default` = GlyphLayout(
         sizing: .tight,
         anchor: .center,
         offset: .zero
     )
+    
+    /// Creates a new `GlyphLayout` with the specified sizing, anchor, and offset.
+    /// - Parameters:
+    ///   - sizing: Determines how the glyph path is sized within its internal container.
+    ///   - anchor: The anchor point within the external container.
+    ///   - offset: Additional offset in points. Positive x moves right, positive y moves down.
+    public init(
+        sizing: GlyphSizing = .tight,
+        anchor: UnitPoint = .center,
+        offset: CGPoint = .zero
+    ) {
+        self.sizing = sizing
+        self.anchor = anchor
+        self.offset = offset
+    }
 }

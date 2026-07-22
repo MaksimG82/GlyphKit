@@ -8,6 +8,8 @@ GlyphKit is a Swift Package (iOS 17+, Swift 6) that renders a single font glyph 
 
 ## Commands
 
+The user runs all builds and tests themselves. Do not run `xcodebuild build` or `xcodebuild test`, and do not treat a successful build/test run as a required verification step before considering a task done — only run these commands if explicitly asked to.
+
 Build and test via `xcodebuild` (this is a library package, not an app — there's no `swift test` CI path used here, though it should work locally too):
 
 ```bash
@@ -46,3 +48,5 @@ When changing geometry logic, prefer testing the individual static methods on `G
 
 - `GlyphKitFont.SystemFont` cases map to actual iOS font PostScript names (e.g. `.timesNewRoman` → `"TimesNewRomanPSMT"`) with a `.systemFont` fallback if the named font isn't installed — check `GlyphKitFont.swift` before adding a new system font case.
 - SwiftUI `#Preview` blocks in `GlyphView.swift` double as living usage examples (multiple glyphs, layout variants, the README's own snippets) — keep them in sync with README examples when changing the public API.
+- New declarations use `///` DocC doc comments: a one-line summary, expanded with `- Parameters:`/`- Returns:` for non-trivial functions (see `GlyphView.swift`, `GlyphLayoutResolver.swift`). Follow this for internal/private declarations too, not just `public` API.
+- When adding new functionality — whether public API or significant internal implementation (e.g. caching strategy) — update the corresponding documentation in the same change: DocC `///` comments, and README.md where relevant. The deploy-documentation.yml workflow publishes whatever documentation exists; it does not verify completeness or accuracy.

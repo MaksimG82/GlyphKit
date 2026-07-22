@@ -9,10 +9,10 @@ import CoreText
 import UIKit
 
 /// Represents a font used for glyph path extraction, with optional bold and italic style.
-public enum GlyphKitFont: Sendable {
+public enum GlyphKitFont: Sendable, Hashable {
 
     /// A built-in font available on iOS without bundle registration.
-    public enum SystemFont: Sendable {
+    public enum SystemFont: Sendable, Hashable {
         /// San Francisco — the default iOS system font.
         case sanFrancisco
         /// SF Mono — monospaced variant of San Francisco.

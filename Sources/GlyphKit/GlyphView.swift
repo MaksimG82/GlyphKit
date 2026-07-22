@@ -53,20 +53,46 @@ public struct GlyphView: View {
 
     public var body: some View {
         Canvas { context, size in
-            guard
-                let ctFont = font.ctFont,
-                let path = GlyphPathExtractor.path(for: character, font: font),
-                let copied = path.copy(using: [GlyphLayoutResolver.resolve(
-                    layout: layout,
-                    path: path,
-                    font: ctFont,
-                    containerSize: size
-                )])
-            else { return }
-
-            context.fill(Path(copied), with: .color(color))
+            guard let path = resolvedPath(size: size) else { return }
+            context.fill(Path(path), with: .color(color))
         }
         .accessibilityHidden(true)
+    }
+
+    // MARK: - Private
+
+    /// Returns the fully-transformed glyph path for `size`, reading and populating
+    /// the render tier of `GlyphPathCache`.
+    private func resolvedPath(size: CGSize) -> CGPath? {
+        let renderKey = GlyphPathCache.RenderKey(character: character, font: font, layout: layout, size: size)
+        if let cached = GlyphPathCache.renderedPath(for: renderKey) {
+            return cached
+        } else if
+            let ctFont = font.ctFont,
+            let extracted = extractedGlyphPath(),
+            let transformed = extracted.copy(using: [GlyphLayoutResolver.resolve(
+                layout: layout, path: extracted, font: ctFont, containerSize: size
+            )])
+        {
+            GlyphPathCache.store(renderedPath: transformed, for: renderKey)
+            return transformed
+        } else {
+            return nil
+        }
+    }
+
+    /// Returns the raw, untransformed glyph path, reading and populating the
+    /// extraction tier of `GlyphPathCache`.
+    private func extractedGlyphPath() -> CGPath? {
+        let key = GlyphPathCache.ExtractionKey(character: character, font: font)
+        if let cached = GlyphPathCache.extractedPath(for: key) {
+            return cached
+        } else if let path = GlyphPathExtractor.path(for: character, font: font) {
+            GlyphPathCache.store(extractedPath: path, for: key)
+            return path
+        } else {
+            return nil
+        }
     }
 }
 

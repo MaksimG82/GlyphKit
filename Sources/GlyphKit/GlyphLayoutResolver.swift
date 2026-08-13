@@ -5,10 +5,6 @@
 //  Created by Maksim Gaisin on 02.06.26.
 //
 
-
-import CoreGraphics
-import SwiftUI
-
 import CoreGraphics
 import SwiftUI
 

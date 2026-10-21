@@ -114,6 +114,14 @@ GlyphKit is well suited for grid-based educational UIs where glyphs must sit pre
 
 ```
 
+## Limitations
+
+GlyphKit renders the outline of a single glyph, so it supports characters that the chosen font maps to one glyph with a vector outline.
+
+- **Characters outside the font.** If the font has no glyph for the character, nothing is drawn. There is no fallback to another font (for example, a CJK character in Georgia).
+- **Color emoji.** Emoji are stored as bitmaps in their fonts and have no outline, so they are not drawn.
+- **Empty glyphs.** Characters without an outline, such as a space or a zero-width character, draw nothing.
+
 ## Documentation
 
 Full documentation is available at [MaksimG82.github.io/GlyphKit](https://MaksimG82.github.io/GlyphKit/documentation/glyphkit)

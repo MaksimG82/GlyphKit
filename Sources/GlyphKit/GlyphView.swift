@@ -12,6 +12,11 @@ import CoreText
 ///
 /// Extracts the glyph path via `GlyphPathExtractor`, resolves the transform
 /// via `GlyphLayoutResolver`, and draws the result without baseline or Dynamic Type shifts.
+///
+/// Deprecated: use `GlyphShape` with a fill, for example
+/// `GlyphShape("A", font: font, layout: layout).fill(color)`, which renders the same
+/// glyph and also supports strokes, gradients, `trim`, and clipping.
+@available(*, deprecated, message: "Use GlyphShape(_:font:layout:) with .fill(color) instead.")
 public struct GlyphView: View {
 
     // MARK: - Public Properties
@@ -61,99 +66,3 @@ public struct GlyphView: View {
         .accessibilityHidden(true)
     }
 }
-
-// MARK: - Previews
-
-#if DEBUG
-
-#Preview("GlyphView — multiple") {
-    let characters: [Character] = ["A", "g", "&", "3", "ß", "?"]
-    let colors: [Color] = [.blue, .red, .green, .orange, .purple, .pink]
-
-    return LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 3), spacing: 24) {
-        ForEach(Array(zip(characters, colors)), id: \.0.description) { char, color in
-            GlyphView(char, color: color)
-                .frame(width: 80, height: 80)
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-    .padding()
-}
-
-#Preview("GlyphView — layout variants") {
-    let items: [(Character, GlyphLayout, Color)] = [
-        ("=", GlyphLayout(sizing: .tight,       anchor: .center,        offset: .zero), .blue),
-        ("=", GlyphLayout(sizing: .fontMetrics, anchor: .center,        offset: .zero), .blue),
-        ("'", GlyphLayout(sizing: .tight,       anchor: .center,        offset: .zero), .red),
-        ("'", GlyphLayout(sizing: .fontMetrics, anchor: .center,        offset: .zero), .red),
-        (".", GlyphLayout(sizing: .tight,       anchor: .center,        offset: .zero), .green),
-        (".", GlyphLayout(sizing: .fontMetrics, anchor: .center,        offset: .zero), .green),
-        (".", GlyphLayout(sizing: .fontMetrics, anchor: .bottom,        offset: .zero), .orange),
-        (".", GlyphLayout(sizing: .fontMetrics, anchor: .bottomLeading, offset: .zero), .purple),
-    ]
-
-    return LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 4), spacing: 16) {
-        ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-            GlyphView(item.0, layout: item.1, color: item.2)
-                .frame(width: 60, height: 60)
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
-    }
-    .padding()
-}
-
-#Preview("README — examples") {
-    HStack(spacing: 16) {
-        GlyphView("Å")
-            .frame(width: 80, height: 80)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-        GlyphView(".",
-            layout: GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero),
-            color: .orange
-        )
-        .frame(width: 80, height: 80)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-        GlyphView("3",
-            font: .system(.georgia, isBold: true, isItalic: true),
-            layout: .default,
-            color: .blue
-        )
-        .frame(width: 80, height: 80)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-    .padding()
-}
-
-#Preview("README — notebook grid") {
-    let items: [(Character, GlyphSizing)] = [
-        ("3", .tight),
-        ("=", .fontMetrics),
-        ("8", .tight)
-    ]
-
-    HStack(spacing: 0) {
-        ForEach(items, id: \.0) { digit, sizing in
-            GlyphView(digit,
-                font: .system(.georgia, isItalic: true),
-                layout: GlyphLayout(
-                    sizing: sizing,
-                    anchor: sizing == .tight ? .trailing : .center,
-                    offset: .zero
-                ),
-                color: .primary
-            )
-            .frame(width: 56, height: 56)
-            .border(Color(.systemGray4), width: 0.5)
-        }
-    }
-    .padding()
-}
-
-#endif

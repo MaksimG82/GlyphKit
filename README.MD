@@ -60,28 +60,29 @@ dependencies: [
 import GlyphKit
 
 // Tight — glyph fills the frame completely
-GlyphView("Å")
+GlyphShape("Å")
+    .fill(.primary)
     .frame(width: 80, height: 80)
 
 // Typographic — preserves proportions within the font's vertical metrics
-GlyphView(".",
-    layout: GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero),
-    color: .orange
+GlyphShape(".",
+    layout: GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero)
 )
+.fill(.orange)
 .frame(width: 80, height: 80)
 
 // Custom font, custom color
-GlyphView("3",
+GlyphShape("3",
     font: .system(.georgia, isBold: true, isItalic: true),
-    layout: .default,
-    color: .blue
+    layout: .default
 )
+.fill(.blue)
 .frame(width: 80, height: 80)
 ```
 
 ## GlyphShape
 
-`GlyphShape` lays the glyph out exactly like `GlyphView`, but as a SwiftUI `Shape`, so any shape modifier works on it:
+`GlyphShape` is a SwiftUI `Shape`, so any shape modifier works on it:
 
 ```swift
 // Outline
@@ -109,6 +110,19 @@ GlyphShape("S", font: .system(.georgia, isItalic: true))
     .stroke(.indigo, lineWidth: 2)
 ```
 
+### Migrating from GlyphView
+
+`GlyphView` is deprecated. Replace it with `GlyphShape` and move `color` into a fill:
+
+```swift
+// Before
+GlyphView("A", font: font, layout: layout, color: .blue)
+
+// After
+GlyphShape("A", font: font, layout: layout)
+    .fill(.blue)
+```
+
 ## Sizing Modes
 
 | Mode | Description |
@@ -130,15 +144,15 @@ GlyphKit is well suited for grid-based educational UIs where glyphs must sit pre
     
     HStack(spacing: 0) {
         ForEach(items, id: \.0) { digit, sizing in
-            GlyphView(digit,
+            GlyphShape(digit,
                 font: .system(.georgia, isItalic: true),
                 layout: GlyphLayout(
                     sizing: sizing,
                     anchor: sizing == .tight ? .trailing : .center,
                     offset: .zero
-                ),
-                color: .primary
+                )
             )
+            .fill(.primary)
             .frame(width: 56, height: 56)
             .border(Color(.systemGray4), width: 0.5)
         }

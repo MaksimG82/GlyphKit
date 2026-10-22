@@ -42,13 +42,13 @@ The rendering pipeline has these pieces that map directly to the two concerns ca
 5. **`GlyphLayout`** — the public struct bundling `sizing`, `anchor`, and `offset` that callers configure; `GlyphLayoutResolver` consumes it.
 6. **`GlyphPathProvider`** — internal helper that runs extraction (step 1) and resolution (step 4) through the two tiers of `GlyphPathCache`, returning a ready-to-fill path for a container at origin (0,0). Shared by both public renderers below.
 7. **`GlyphShape`** — a public SwiftUI `Shape`. `path(in:)` gets the path from `GlyphPathProvider` for `rect.size` and offsets it by `rect.origin` (the cache is keyed on size only). Returns an empty `Path` when the glyph can't be resolved. Supports any fill/stroke style, `trim`, and use as a clip or content shape.
-8. **`GlyphView`** — SwiftUI view that draws in a `Canvas`, filling the path from `GlyphPathProvider` with `color`. Marked `.accessibilityHidden(true)` since it renders decorative/typographic content, not readable text.
+8. **`GlyphView`** — **deprecated** in favor of `GlyphShape(...).fill(color)`; kept for source compatibility, no previews. SwiftUI view that draws in a `Canvas`, filling the path from `GlyphPathProvider` with `color`. Marked `.accessibilityHidden(true)` since it renders decorative/typographic content, not readable text.
 
 When changing geometry logic, prefer testing the individual static methods on `GlyphLayoutResolver` (`scaleFactor`, `transformToInternalContainer`, `transformPlacement`, `internalContainerSize`) rather than only the composed `resolve(...)` — the existing test suite (`GlyphLayoutResolverTests`) is structured this way, one `@Suite`-nested group of tests per method.
 
 ## Notes
 
 - `GlyphKitFont.SystemFont` cases map to actual iOS font PostScript names (e.g. `.timesNewRoman` → `"TimesNewRomanPSMT"`) with a `.systemFont` fallback if the named font isn't installed — check `GlyphKitFont.swift` before adding a new system font case.
-- SwiftUI `#Preview` blocks in `GlyphShape.swift` and `GlyphView.swift` double as living usage examples (multiple glyphs, layout variants, Shape styling, the README's own snippets) — keep them in sync with README examples when changing the public API.
-- New declarations use `///` DocC doc comments: a one-line summary, expanded with `- Parameters:`/`- Returns:` for non-trivial functions (see `GlyphView.swift`, `GlyphLayoutResolver.swift`). Follow this for internal/private declarations too, not just `public` API.
+- SwiftUI `#Preview` blocks in `GlyphShape.swift` double as living usage examples (multiple glyphs, layout variants, Shape styling, the README's own snippets) — keep them in sync with README examples when changing the public API.
+- New declarations use `///` DocC doc comments: a one-line summary, expanded with `- Parameters:`/`- Returns:` for non-trivial functions (see `GlyphShape.swift`, `GlyphLayoutResolver.swift`). Follow this for internal/private declarations too, not just `public` API.
 - When adding new functionality — whether public API or significant internal implementation (e.g. caching strategy) — update the corresponding documentation in the same change: DocC `///` comments, and README.md where relevant. The deploy-documentation.yml workflow publishes whatever documentation exists; it does not verify completeness or accuracy.

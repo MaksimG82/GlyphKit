@@ -94,6 +94,12 @@ GlyphShape("g")
     .fill(.yellow)
     .stroke(.orange, lineWidth: 3)
 
+// Stroke kept entirely inside the frame (GlyphShape is an InsettableShape).
+// Round joins stop sharp corners from poking out past the frame.
+GlyphShape("W")
+    .strokeBorder(.green, style: StrokeStyle(lineWidth: 10, lineJoin: .round))
+    .frame(width: 80, height: 80)
+
 // Gradient fill
 GlyphShape("G", font: .system(.futura, isBold: true))
     .fill(LinearGradient(colors: [.purple, .pink], startPoint: .top, endPoint: .bottom))

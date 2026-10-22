@@ -15,6 +15,10 @@ import SwiftUI
 /// or content shape. As an `InsettableShape`, it also supports `strokeBorder`,
 /// which keeps the whole stroke inside the shape's frame.
 ///
+/// - Note: With the default miter join, a glyph's sharp corners (as in "W" or "V")
+///   can extend a `strokeBorder` beyond the frame. Use `lineJoin: .round` or `.bevel`
+///   to keep the stroke strictly inside.
+///
 /// If the font can't be resolved or the character has no outline (for example
 /// a space), the shape's path is empty.
 public struct GlyphShape: InsettableShape {
@@ -200,6 +204,27 @@ public struct GlyphShape: InsettableShape {
             .stroke(.orange, lineWidth: 3)
     }
     .frame(height: 80)
+    .padding()
+}
+
+#Preview("GlyphShape — stroke vs strokeBorder") {
+    HStack(spacing: 24) {
+        VStack {
+            GlyphShape("W")
+                .stroke(.red, style: StrokeStyle(lineWidth: 10, lineJoin: .round))
+                .frame(width: 80, height: 80)
+                .border(Color(.systemGray3))
+            Text("stroke").font(.caption)
+        }
+
+        VStack {
+            GlyphShape("W")
+                .strokeBorder(.green, style: StrokeStyle(lineWidth: 10, lineJoin: .round))
+                .frame(width: 80, height: 80)
+                .border(Color(.systemGray3))
+            Text("strokeBorder").font(.caption)
+        }
+    }
     .padding()
 }
 

@@ -107,7 +107,7 @@ public struct GlyphShape: InsettableShape {
             GlyphShape(char)
                 .fill(color)
                 .frame(width: 80, height: 80)
-                .background(Color(.systemGray6))
+                .background(Color.previewBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
@@ -131,7 +131,7 @@ public struct GlyphShape: InsettableShape {
             GlyphShape(item.0, layout: item.1)
                 .fill(item.2)
                 .frame(width: 60, height: 60)
-                .background(Color(.systemGray6))
+                .background(Color.previewBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
@@ -143,7 +143,7 @@ public struct GlyphShape: InsettableShape {
         GlyphShape("Å")
             .fill(.primary)
             .frame(width: 80, height: 80)
-            .background(Color(.systemGray6))
+            .background(Color.previewBackground)
             .clipShape(RoundedRectangle(cornerRadius: 8))
         
         GlyphShape(".",
@@ -151,7 +151,7 @@ public struct GlyphShape: InsettableShape {
         )
         .fill(.orange)
         .frame(width: 80, height: 80)
-        .background(Color(.systemGray6))
+        .background(Color.previewBackground)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         
         GlyphShape("3",
@@ -160,7 +160,7 @@ public struct GlyphShape: InsettableShape {
         )
         .fill(.blue)
         .frame(width: 80, height: 80)
-        .background(Color(.systemGray6))
+        .background(Color.previewBackground)
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     .padding()
@@ -185,7 +185,7 @@ public struct GlyphShape: InsettableShape {
             )
             .fill(.primary)
             .frame(width: 56, height: 56)
-            .border(Color(.systemGray4), width: 0.5)
+            .border(Color.gray.opacity(0.35), width: 0.5)
         }
     }
     .padding()
@@ -213,7 +213,7 @@ public struct GlyphShape: InsettableShape {
             GlyphShape("W")
                 .stroke(.red, style: StrokeStyle(lineWidth: 10, lineJoin: .round))
                 .frame(width: 80, height: 80)
-                .border(Color(.systemGray3))
+                .border(Color.previewFrame)
             Text("stroke").font(.caption)
         }
 
@@ -221,7 +221,7 @@ public struct GlyphShape: InsettableShape {
             GlyphShape("W")
                 .strokeBorder(.green, style: StrokeStyle(lineWidth: 10, lineJoin: .round))
                 .frame(width: 80, height: 80)
-                .border(Color(.systemGray3))
+                .border(Color.previewFrame)
             Text("strokeBorder").font(.caption)
         }
     }
@@ -275,6 +275,28 @@ private struct TrimmedGlyphPreview: View {
                     progress = 1
                 }
             }
+    }
+}
+
+/// Neutral grays for previews: UIKit's system grays on iOS, close equivalents on macOS.
+private extension Color {
+
+    /// A light fill behind glyphs (`systemGray6` on iOS).
+    static var previewBackground: Color {
+        #if canImport(UIKit)
+        Color(.systemGray6)
+        #else
+        Color.gray.opacity(0.12)
+        #endif
+    }
+
+    /// A frame outline (`systemGray3` on iOS).
+    static var previewFrame: Color {
+        #if canImport(UIKit)
+        Color(.systemGray3)
+        #else
+        Color.gray.opacity(0.5)
+        #endif
     }
 }
 

@@ -12,6 +12,11 @@ import CoreText
 ///
 /// Extracts the glyph path via `GlyphPathExtractor`, resolves the transform
 /// via `GlyphLayoutResolver`, and draws the result without baseline or Dynamic Type shifts.
+///
+/// Deprecated: use `GlyphShape` with a fill, for example
+/// `GlyphShape("A", font: font, layout: layout).fill(color)`, which renders the same
+/// glyph and also supports strokes, gradients, `trim`, and clipping.
+@available(*, deprecated, message: "Use GlyphShape(_:font:layout:) with .fill(color) instead.")
 public struct GlyphView: View {
 
     // MARK: - Public Properties
@@ -53,141 +58,11 @@ public struct GlyphView: View {
 
     public var body: some View {
         Canvas { context, size in
-            guard let path = resolvedPath(size: size) else { return }
+            guard let path = GlyphPathProvider.resolvedPath(
+                character: character, font: font, layout: layout, size: size
+            ) else { return }
             context.fill(Path(path), with: .color(color))
         }
         .accessibilityHidden(true)
     }
-
-    // MARK: - Private
-
-    /// Returns the fully-transformed glyph path for `size`, reading and populating
-    /// the render tier of `GlyphPathCache`.
-    private func resolvedPath(size: CGSize) -> CGPath? {
-        let renderKey = GlyphPathCache.RenderKey(character: character, font: font, layout: layout, size: size)
-        if let cached = GlyphPathCache.renderedPath(for: renderKey) {
-            return cached
-        } else if
-            let ctFont = font.ctFont,
-            let extracted = extractedGlyphPath(),
-            let transformed = extracted.copy(using: [GlyphLayoutResolver.resolve(
-                layout: layout, path: extracted, font: ctFont, containerSize: size
-            )])
-        {
-            GlyphPathCache.store(renderedPath: transformed, for: renderKey)
-            return transformed
-        } else {
-            return nil
-        }
-    }
-
-    /// Returns the raw, untransformed glyph path, reading and populating the
-    /// extraction tier of `GlyphPathCache`.
-    private func extractedGlyphPath() -> CGPath? {
-        let key = GlyphPathCache.ExtractionKey(character: character, font: font)
-        if let cached = GlyphPathCache.extractedPath(for: key) {
-            return cached
-        } else if let path = GlyphPathExtractor.path(for: character, font: font) {
-            GlyphPathCache.store(extractedPath: path, for: key)
-            return path
-        } else {
-            return nil
-        }
-    }
 }
-
-// MARK: - Previews
-
-#if DEBUG
-
-#Preview("GlyphView — multiple") {
-    let characters: [Character] = ["A", "g", "&", "3", "ß", "?"]
-    let colors: [Color] = [.blue, .red, .green, .orange, .purple, .pink]
-
-    return LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 3), spacing: 24) {
-        ForEach(Array(zip(characters, colors)), id: \.0.description) { char, color in
-            GlyphView(char, color: color)
-                .frame(width: 80, height: 80)
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-    .padding()
-}
-
-#Preview("GlyphView — layout variants") {
-    let items: [(Character, GlyphLayout, Color)] = [
-        ("=", GlyphLayout(sizing: .tight,       anchor: .center,        offset: .zero), .blue),
-        ("=", GlyphLayout(sizing: .fontMetrics, anchor: .center,        offset: .zero), .blue),
-        ("'", GlyphLayout(sizing: .tight,       anchor: .center,        offset: .zero), .red),
-        ("'", GlyphLayout(sizing: .fontMetrics, anchor: .center,        offset: .zero), .red),
-        (".", GlyphLayout(sizing: .tight,       anchor: .center,        offset: .zero), .green),
-        (".", GlyphLayout(sizing: .fontMetrics, anchor: .center,        offset: .zero), .green),
-        (".", GlyphLayout(sizing: .fontMetrics, anchor: .bottom,        offset: .zero), .orange),
-        (".", GlyphLayout(sizing: .fontMetrics, anchor: .bottomLeading, offset: .zero), .purple),
-    ]
-
-    return LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 4), spacing: 16) {
-        ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-            GlyphView(item.0, layout: item.1, color: item.2)
-                .frame(width: 60, height: 60)
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
-    }
-    .padding()
-}
-
-#Preview("README — examples") {
-    HStack(spacing: 16) {
-        GlyphView("Å")
-            .frame(width: 80, height: 80)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-        GlyphView(".",
-            layout: GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero),
-            color: .orange
-        )
-        .frame(width: 80, height: 80)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-        GlyphView("3",
-            font: .system(.georgia, isBold: true, isItalic: true),
-            layout: .default,
-            color: .blue
-        )
-        .frame(width: 80, height: 80)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-    .padding()
-}
-
-#Preview("README — notebook grid") {
-    let items: [(Character, GlyphSizing)] = [
-        ("3", .tight),
-        ("=", .fontMetrics),
-        ("8", .tight)
-    ]
-
-    HStack(spacing: 0) {
-        ForEach(items, id: \.0) { digit, sizing in
-            GlyphView(digit,
-                font: .system(.georgia, isItalic: true),
-                layout: GlyphLayout(
-                    sizing: sizing,
-                    anchor: sizing == .tight ? .trailing : .center,
-                    offset: .zero
-                ),
-                color: .primary
-            )
-            .frame(width: 56, height: 56)
-            .border(Color(.systemGray4), width: 0.5)
-        }
-    }
-    .padding()
-}
-
-#endif

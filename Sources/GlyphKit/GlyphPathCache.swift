@@ -7,8 +7,9 @@
 
 import Foundation
 import CoreGraphics
+import CoreText
 
-/// A process-lifetime, thread-safe cache for the two expensive, independently
+/// A process-lifetime, thread-safe cache for the three expensive, independently
 /// invalidating steps in the glyph render pipeline shared by `GlyphShape` and
 /// `GlyphView` (via `GlyphPathProvider`), so they aren't redone on every
 /// `path(in:)` call or `Canvas` re-evaluation when nothing relevant changed.
@@ -18,17 +19,20 @@ import CoreGraphics
 /// `GlyphView`'s `Canvas` content closure aren't guaranteed to run on the main
 /// thread, so this avoids needing any additional locking.
 ///
-/// The cache is split into two tiers, mirroring the two independent steps in the
+/// The cache is split into three tiers, mirroring the independent steps in the
 /// render pipeline:
+/// - **Font** (`GlyphKitFont`): the resolved `CTFont` from `GlyphKitFont.ctFont`,
+///   which dominates the cost of a render-tier miss. Fonts that fail to resolve
+///   are not stored.
 /// - **Extraction** (`ExtractionKey` — `character` + `font`): the raw, untransformed
-///   glyph outline from `GlyphPathExtractor`, the expensive step.
+///   glyph outline from `GlyphPathExtractor`.
 /// - **Render** (`RenderKey` — `character` + `font` + `layout` + `size`): the final
 ///   transformed path from `GlyphLayoutResolver`, ready to fill, positioned in a
 ///   container whose origin is (0, 0).
 ///
 /// Splitting the tiers means a size- or layout-only change (the same character
-/// re-rendered at a different size, say) still reuses the extracted path and only
-/// redoes the transform.
+/// re-rendered at a different size, say) still reuses the font and the extracted
+/// path and only redoes the transform.
 enum GlyphPathCache {
 
     /// Identifies a glyph's extraction inputs — character and font — for cache lookup.
@@ -85,6 +89,31 @@ enum GlyphPathCache {
         }
     }
 
+    /// Returns the resolved `CTFont` for `font`, resolving and caching it on a miss.
+    ///
+    /// A font that fails to resolve is not cached, so a custom font registered
+    /// later resolves on a subsequent call.
+    ///
+    /// - Parameter font: The font to resolve.
+    /// - Returns: The resolved font, or `nil` if `font` can't be resolved.
+    static func ctFont(for font: GlyphKitFont) -> CTFont? {
+        if let cached = cachedCTFont(for: font) {
+            return cached
+        } else if let resolved = font.ctFont {
+            fontStorage.setObject(resolved, forKey: FontBox(font))
+            return resolved
+        } else {
+            return nil
+        }
+    }
+
+    /// Returns the cached `CTFont` for `font`, if present, without resolving it.
+    /// - Parameter font: The font to look up.
+    /// - Returns: The cached font, or `nil` on a cache miss.
+    static func cachedCTFont(for font: GlyphKitFont) -> CTFont? {
+        fontStorage.object(forKey: FontBox(font))
+    }
+
     /// Returns the cached, untransformed glyph path for `key`, if present.
     /// - Parameter key: The extraction inputs to look up.
     /// - Returns: The cached path, or `nil` on a cache miss.
@@ -117,6 +146,10 @@ enum GlyphPathCache {
 
     // MARK: - Private
 
+    /// The maximum number of resolved fonts to retain. Font keys vary only by font
+    /// and style, so the working set is naturally small.
+    private static let fontCountLimit = 32
+
     /// The maximum number of extracted paths to retain. Extraction keys vary only
     /// by character + font, so the working set is naturally small.
     private static let extractionCountLimit = 128
@@ -130,6 +163,12 @@ enum GlyphPathCache {
     // `NSCache` is documented as safe for concurrent access from multiple threads,
     // but Foundation's overlay doesn't mark it `Sendable` — `nonisolated(unsafe)`
     // asserts that documented thread-safety to the compiler.
+    private nonisolated(unsafe) static let fontStorage: NSCache<FontBox, CTFont> = {
+        let cache = NSCache<FontBox, CTFont>()
+        cache.countLimit = fontCountLimit
+        return cache
+    }()
+
     private nonisolated(unsafe) static let extractionStorage: NSCache<ExtractionBox, CGPath> = {
         let cache = NSCache<ExtractionBox, CGPath>()
         cache.countLimit = extractionCountLimit
@@ -141,6 +180,25 @@ enum GlyphPathCache {
         cache.countLimit = renderCountLimit
         return cache
     }()
+
+    /// Wraps `GlyphKitFont` as an `NSObject` so it can be used with `NSCache`,
+    /// which requires reference-type keys.
+    private final class FontBox: NSObject, Sendable {
+        let font: GlyphKitFont
+
+        init(_ font: GlyphKitFont) {
+            self.font = font
+        }
+
+        override func isEqual(_ object: Any?) -> Bool {
+            guard let other = object as? FontBox else { return false }
+            return other.font == font
+        }
+
+        override var hash: Int {
+            font.hashValue
+        }
+    }
 
     /// Wraps `ExtractionKey` as an `NSObject` so it can be used with `NSCache`,
     /// which requires reference-type keys.

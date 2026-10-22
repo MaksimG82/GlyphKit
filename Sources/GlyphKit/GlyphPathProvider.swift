@@ -8,7 +8,7 @@
 import CoreGraphics
 
 /// Produces ready-to-fill glyph paths by running the extraction and layout pipeline
-/// through both tiers of `GlyphPathCache`.
+/// through the font, extraction, and render tiers of `GlyphPathCache`.
 enum GlyphPathProvider {
 
     /// Returns the fully-transformed glyph path for a container of `size` with its
@@ -31,7 +31,7 @@ enum GlyphPathProvider {
         if let cached = GlyphPathCache.renderedPath(for: renderKey) {
             return cached
         } else if
-            let ctFont = font.ctFont,
+            let ctFont = GlyphPathCache.ctFont(for: font),
             let extracted = extractedPath(character: character, font: font),
             let transformed = extracted.copy(using: [GlyphLayoutResolver.resolve(
                 layout: layout, path: extracted, font: ctFont, containerSize: size

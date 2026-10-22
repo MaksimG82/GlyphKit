@@ -9,10 +9,16 @@ on:
 jobs:
   test:
     runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        destination:
+          - "platform=iOS Simulator,name=iPhone 16"
+          - "platform=macOS"
     steps:
       - uses: actions/checkout@v4
       - name: Run tests
         run: |
           xcodebuild test \
             -scheme GlyphKit \
-            -destination 'platform=iOS Simulator,name=iPhone 16'
+            -destination '${{ matrix.destination }}'

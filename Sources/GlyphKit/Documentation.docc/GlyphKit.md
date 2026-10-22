@@ -7,7 +7,7 @@ Render any font glyph into a SwiftUI view with point-precise sizing.
 
 GlyphKit extracts vector glyph outlines via Core Text and exposes them 
 as a SwiftUI `Shape` — without baseline shifts, Dynamic Type interference, 
-or UILabel rendering pipeline. Fill, stroke, trim, or clip to a glyph 
+or UILabel/NSTextField rendering pipeline. Fill, stroke, trim, or clip to a glyph 
 like any other shape.
 
 Two sizing modes give you full control: **tight** fills the container 

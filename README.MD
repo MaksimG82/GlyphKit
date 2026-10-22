@@ -5,6 +5,7 @@ Render any font glyph into a SwiftUI view with point-precise sizing — tight to
 ![Version](https://img.shields.io/github/v/tag/MaksimG82/GlyphKit?label=version)
 ![Swift](https://img.shields.io/badge/Swift-6.0-orange)
 ![iOS](https://img.shields.io/badge/iOS-17%2B-blue)
+![macOS](https://img.shields.io/badge/macOS-14%2B-blue)
 ![SPM](https://img.shields.io/badge/SPM-compatible-brightgreen)
 ![Documentation](https://img.shields.io/badge/Documentation-DocC-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
@@ -12,7 +13,7 @@ Render any font glyph into a SwiftUI view with point-precise sizing — tight to
 ## Features
 
 **Core**
-- Extracts vector glyph outlines via Core Text — no UILabel, no text rendering pipeline
+- Extracts vector glyph outlines via Core Text — no UILabel or NSTextField, no text rendering pipeline
 - No baseline shifts, no Dynamic Type interference
 
 **Sizing**
@@ -31,7 +32,7 @@ Render any font glyph into a SwiftUI view with point-precise sizing — tight to
 
 ## Requirements
 
-- iOS 17+
+- iOS 17+ / macOS 14+
 - Swift 6
 
 ## Installation
@@ -160,7 +161,7 @@ GlyphKit is well suited for grid-based educational UIs where glyphs must sit pre
             )
             .fill(.primary)
             .frame(width: 56, height: 56)
-            .border(Color(.systemGray4), width: 0.5)
+            .border(Color.gray.opacity(0.35), width: 0.5)
         }
     }
     .padding()

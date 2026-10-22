@@ -158,4 +158,70 @@ public struct GlyphShape: Shape {
     .padding()
 }
 
+#Preview("GlyphShape — strokes") {
+    HStack(spacing: 16) {
+        GlyphShape("A")
+            .stroke(.blue, lineWidth: 2)
+
+        GlyphShape("&")
+            .stroke(.red, style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [4, 4]))
+
+        GlyphShape("g")
+            .fill(.yellow)
+            .stroke(.orange, lineWidth: 3)
+    }
+    .frame(height: 80)
+    .padding()
+}
+
+#Preview("GlyphShape — gradients") {
+    HStack(spacing: 16) {
+        GlyphShape("G", font: .system(.futura, isBold: true))
+            .fill(LinearGradient(colors: [.purple, .pink], startPoint: .top, endPoint: .bottom))
+
+        GlyphShape("@")
+            .fill(AngularGradient(colors: [.red, .yellow, .green, .blue, .red], center: .center))
+
+        GlyphShape("ß", font: .system(.baskerville))
+            .fill(RadialGradient(colors: [.orange, .brown], center: .center, startRadius: 0, endRadius: 50))
+    }
+    .frame(height: 80)
+    .padding()
+}
+
+#Preview("GlyphShape — clipping content") {
+    HStack(spacing: 0) {
+        ForEach([Color.red, .orange, .yellow, .green, .blue, .purple], id: \.self) { color in
+            color
+        }
+    }
+    .frame(width: 200, height: 200)
+    .clipShape(GlyphShape("R", font: .system(.americanTypewriter, isBold: true)))
+    .padding()
+}
+
+#Preview("GlyphShape — trim animation") {
+    TrimmedGlyphPreview()
+}
+
+/// Draws a glyph's outline progressively by animating `trim(from:to:)`.
+private struct TrimmedGlyphPreview: View {
+
+    /// The fraction of the outline currently drawn, from 0 to 1.
+    @State private var progress: CGFloat = 0
+
+    var body: some View {
+        GlyphShape("S", font: .system(.georgia, isItalic: true))
+            .trim(from: 0, to: progress)
+            .stroke(.indigo, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+            .frame(width: 160, height: 160)
+            .padding()
+            .onAppear {
+                withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                    progress = 1
+                }
+            }
+    }
+}
+
 #endif

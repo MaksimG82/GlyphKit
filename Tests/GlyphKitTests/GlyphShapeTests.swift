@@ -74,7 +74,49 @@ struct GlyphShapeTests {
         #expect(GlyphShape(" ").path(in: rect).isEmpty)
     }
 
+    // MARK: - inset(by:)
+
+    /// Insetting is equivalent to laying the glyph out in the correspondingly smaller rect.
+    @Test func insetMatchesSmallerRect() {
+        let shape = GlyphShape("A")
+
+        let inset = shape.inset(by: 10).path(in: rect).boundingRect
+        let smaller = shape.path(in: rect.insetBy(dx: 10, dy: 10)).boundingRect
+
+        #expect(isApproximatelyEqual(inset, smaller))
+    }
+
+    /// The inset glyph stays inside the inset rect.
+    @Test func insetPathStaysInsideInsetRect() {
+        let bounds = GlyphShape("W").inset(by: 10).path(in: rect).boundingRect
+
+        #expect(isContained(bounds, in: rect.insetBy(dx: 10, dy: 10)))
+    }
+
+    /// Successive insets accumulate.
+    @Test func insetsAccumulate() {
+        let shape = GlyphShape("g")
+
+        let chained = shape.inset(by: 4).inset(by: 6).path(in: rect).boundingRect
+        let single = shape.inset(by: 10).path(in: rect).boundingRect
+
+        #expect(isApproximatelyEqual(chained, single))
+    }
+
+    /// An inset larger than half the rect leaves no area, producing an empty path.
+    @Test func oversizedInsetIsEmpty() {
+        #expect(GlyphShape("A").inset(by: 60).path(in: rect).isEmpty)
+    }
+
     // MARK: - Helpers
+
+    /// Returns whether `lhs` and `rhs` have the same origin and size, allowing for floating-point tolerance.
+    private func isApproximatelyEqual(_ lhs: CGRect, _ rhs: CGRect) -> Bool {
+        abs(lhs.minX - rhs.minX) < tolerance
+            && abs(lhs.minY - rhs.minY) < tolerance
+            && abs(lhs.width - rhs.width) < tolerance
+            && abs(lhs.height - rhs.height) < tolerance
+    }
 
     /// Returns whether `inner` lies within `outer`, allowing for floating-point tolerance.
     private func isContained(_ inner: CGRect, in outer: CGRect) -> Bool {

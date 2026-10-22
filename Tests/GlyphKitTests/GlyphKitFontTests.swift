@@ -6,6 +6,7 @@
 //
 
 import Testing
+import Foundation
 import CoreText
 @testable import GlyphKit
 
@@ -29,5 +30,23 @@ struct GlyphKitFontTests {
     @Test func systemFontBoldItalicResolves() {
         let font = GlyphKitFont.system(.helveticaNeue, isBold: true, isItalic: true)
         #expect(font.ctFont != nil)
+    }
+
+    /// The bold flag should produce a font that carries the bold trait.
+    @Test func boldTraitApplied() throws {
+        let ctFont = try #require(GlyphKitFont.system(.helveticaNeue, isBold: true).ctFont)
+        #expect(CTFontGetSymbolicTraits(ctFont).contains(.traitBold))
+    }
+
+    /// A custom font that is installed should resolve to that exact font.
+    @Test func customFontExistingResolves() throws {
+        let ctFont = try #require(GlyphKitFont.custom("Georgia").ctFont)
+        #expect(CTFontCopyPostScriptName(ctFont) as String == "Georgia")
+    }
+
+    /// A custom font that isn't installed should return nil, not a substituted fallback font.
+    @Test func customFontMissingReturnsNil() {
+        let font = GlyphKitFont.custom("NoSuchFont-\(UUID().uuidString)")
+        #expect(font.ctFont == nil)
     }
 }

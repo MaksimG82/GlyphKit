@@ -12,11 +12,12 @@ import SwiftUI
 /// The glyph is extracted via `GlyphPathExtractor` and fitted into the shape's
 /// rectangle via `GlyphLayoutResolver`, without baseline or Dynamic Type shifts.
 /// As a `Shape`, it supports any fill or stroke style, `trim`, and use as a clip
-/// or content shape.
+/// or content shape. As an `InsettableShape`, it also supports `strokeBorder`,
+/// which keeps the whole stroke inside the shape's frame.
 ///
 /// If the font can't be resolved or the character has no outline (for example
 /// a space), the shape's path is empty.
-public struct GlyphShape: Shape {
+public struct GlyphShape: InsettableShape {
     
     // MARK: - Public Properties
     
@@ -28,7 +29,13 @@ public struct GlyphShape: Shape {
     
     /// Layout configuration: sizing, anchor, and offset.
     public let layout: GlyphLayout
-    
+
+    // MARK: - Internal Properties
+
+    /// The distance, in points, by which each edge of the layout rectangle is moved
+    /// inward before the glyph is fitted into it. Accumulated by `inset(by:)`.
+    var insetAmount: CGFloat = 0
+
     // MARK: - Init
     
     /// Creates a `GlyphShape` with explicit configuration.
@@ -49,15 +56,37 @@ public struct GlyphShape: Shape {
     
     // MARK: - Shape
     
-    /// Returns the glyph outline laid out within `rect`.
+    /// Returns the glyph outline laid out within `rect`, shrunk on every edge by `insetAmount`.
     ///
     /// - Parameter rect: The rectangle the glyph is fitted into; its origin may be non-zero.
-    /// - Returns: The glyph path, or an empty path if the glyph can't be resolved.
+    /// - Returns: The glyph path, or an empty path if the glyph can't be resolved or
+    ///   the inset rectangle has no area.
     nonisolated public func path(in rect: CGRect) -> Path {
-        guard let path = GlyphPathProvider.resolvedPath(
-            character: character, font: font, layout: layout, size: rect.size
-        ) else { return Path() }
-        return Path(path).offsetBy(dx: rect.minX, dy: rect.minY)
+        let insetRect = rect.insetBy(dx: insetAmount, dy: insetAmount)
+        guard
+            !insetRect.isNull,
+            insetRect.width > 0,
+            insetRect.height > 0,
+            let path = GlyphPathProvider.resolvedPath(
+                character: character, font: font, layout: layout, size: insetRect.size
+            )
+        else { return Path() }
+        return Path(path).offsetBy(dx: insetRect.minX, dy: insetRect.minY)
+    }
+
+    // MARK: - InsettableShape
+
+    /// Returns a copy of this shape whose layout rectangle is moved inward by `amount` on every edge.
+    ///
+    /// The glyph is refitted into the smaller rectangle using the same `layout`; its
+    /// outline is not offset. Repeated calls accumulate.
+    ///
+    /// - Parameter amount: The inset distance in points. Negative values expand the rectangle.
+    /// - Returns: The inset shape.
+    nonisolated public func inset(by amount: CGFloat) -> GlyphShape {
+        var shape = self
+        shape.insetAmount += amount
+        return shape
     }
 }
 

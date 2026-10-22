@@ -23,6 +23,9 @@ Render any font glyph into a SwiftUI view with point-precise sizing — tight to
 - Point-precise control over glyph bounds
 - Anchor and offset for fine-grained positioning
 
+**Styling**
+- `GlyphShape` is a SwiftUI `Shape` — stroke, gradient fill, trim, or clip any view to a glyph
+
 **Use cases**
 - Grid-based layouts: notebook-style arithmetic UI, symbol displays
 
@@ -74,6 +77,36 @@ GlyphView("3",
     color: .blue
 )
 .frame(width: 80, height: 80)
+```
+
+## GlyphShape
+
+`GlyphShape` lays the glyph out exactly like `GlyphView`, but as a SwiftUI `Shape`, so any shape modifier works on it:
+
+```swift
+// Outline
+GlyphShape("A")
+    .stroke(.blue, lineWidth: 2)
+
+// Fill and stroke
+GlyphShape("g")
+    .fill(.yellow)
+    .stroke(.orange, lineWidth: 3)
+
+// Gradient fill
+GlyphShape("G", font: .system(.futura, isBold: true))
+    .fill(LinearGradient(colors: [.purple, .pink], startPoint: .top, endPoint: .bottom))
+
+// Clip any content to a glyph
+HStack(spacing: 0) {
+    ForEach([Color.red, .orange, .yellow, .green, .blue, .purple], id: \.self) { $0 }
+}
+.clipShape(GlyphShape("R", font: .system(.americanTypewriter, isBold: true)))
+
+// Draw the outline progressively
+GlyphShape("S", font: .system(.georgia, isItalic: true))
+    .trim(from: 0, to: progress)
+    .stroke(.indigo, lineWidth: 2)
 ```
 
 ## Sizing Modes

@@ -23,6 +23,9 @@ Render any font glyph into a SwiftUI view with point-precise sizing — tight to
 - Point-precise control over glyph bounds
 - Anchor and offset for fine-grained positioning
 
+**Styling**
+- `GlyphShape` is a SwiftUI `Shape` — stroke, gradient fill, trim, or clip any view to a glyph
+
 **Use cases**
 - Grid-based layouts: notebook-style arithmetic UI, symbol displays
 
@@ -57,23 +60,73 @@ dependencies: [
 import GlyphKit
 
 // Tight — glyph fills the frame completely
-GlyphView("Å")
+GlyphShape("Å")
+    .fill(.primary)
     .frame(width: 80, height: 80)
 
 // Typographic — preserves proportions within the font's vertical metrics
-GlyphView(".",
-    layout: GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero),
-    color: .orange
+GlyphShape(".",
+    layout: GlyphLayout(sizing: .fontMetrics, anchor: .center, offset: .zero)
 )
+.fill(.orange)
 .frame(width: 80, height: 80)
 
 // Custom font, custom color
-GlyphView("3",
+GlyphShape("3",
     font: .system(.georgia, isBold: true, isItalic: true),
-    layout: .default,
-    color: .blue
+    layout: .default
 )
+.fill(.blue)
 .frame(width: 80, height: 80)
+```
+
+## GlyphShape
+
+`GlyphShape` is a SwiftUI `Shape`, so any shape modifier works on it:
+
+```swift
+// Outline
+GlyphShape("A")
+    .stroke(.blue, lineWidth: 2)
+
+// Fill and stroke
+GlyphShape("g")
+    .fill(.yellow)
+    .stroke(.orange, lineWidth: 3)
+
+// Stroke kept entirely inside the frame (GlyphShape is an InsettableShape).
+// Round joins stop sharp corners from poking out past the frame.
+GlyphShape("W")
+    .strokeBorder(.green, style: StrokeStyle(lineWidth: 10, lineJoin: .round))
+    .frame(width: 80, height: 80)
+
+// Gradient fill
+GlyphShape("G", font: .system(.futura, isBold: true))
+    .fill(LinearGradient(colors: [.purple, .pink], startPoint: .top, endPoint: .bottom))
+
+// Clip any content to a glyph
+HStack(spacing: 0) {
+    ForEach([Color.red, .orange, .yellow, .green, .blue, .purple], id: \.self) { $0 }
+}
+.clipShape(GlyphShape("R", font: .system(.americanTypewriter, isBold: true)))
+
+// Draw the outline progressively
+GlyphShape("S", font: .system(.georgia, isItalic: true))
+    .trim(from: 0, to: progress)
+    .stroke(.indigo, lineWidth: 2)
+```
+
+### Migrating from GlyphView
+
+`GlyphView` is deprecated. Replace it with `GlyphShape` and move `color` into a fill:
+
+```swift
+// Before
+GlyphView("A", font: font, layout: layout, color: .blue)
+
+// After
+GlyphShape("A", font: font, layout: layout)
+    .fill(.blue)
 ```
 
 ## Sizing Modes
@@ -97,15 +150,15 @@ GlyphKit is well suited for grid-based educational UIs where glyphs must sit pre
     
     HStack(spacing: 0) {
         ForEach(items, id: \.0) { digit, sizing in
-            GlyphView(digit,
+            GlyphShape(digit,
                 font: .system(.georgia, isItalic: true),
                 layout: GlyphLayout(
                     sizing: sizing,
                     anchor: sizing == .tight ? .trailing : .center,
                     offset: .zero
-                ),
-                color: .primary
+                )
             )
+            .fill(.primary)
             .frame(width: 56, height: 56)
             .border(Color(.systemGray4), width: 0.5)
         }

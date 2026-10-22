@@ -9,20 +9,22 @@ import Foundation
 import CoreGraphics
 
 /// A process-lifetime, thread-safe cache for the two expensive, independently
-/// invalidating steps in `GlyphView`'s render pipeline, so it doesn't need to
-/// redo them on every `Canvas` re-evaluation when nothing relevant changed.
+/// invalidating steps in the glyph render pipeline shared by `GlyphShape` and
+/// `GlyphView` (via `GlyphPathProvider`), so they aren't redone on every
+/// `path(in:)` call or `Canvas` re-evaluation when nothing relevant changed.
 ///
 /// Backed by `NSCache`, which is safe for concurrent access from multiple threads
-/// and evicts entries automatically under memory pressure — `GlyphView`'s `Canvas`
-/// content closure isn't guaranteed to run on the main thread, so this avoids
-/// needing any additional locking.
+/// and evicts entries automatically under memory pressure — `Shape.path(in:)` and
+/// `GlyphView`'s `Canvas` content closure aren't guaranteed to run on the main
+/// thread, so this avoids needing any additional locking.
 ///
 /// The cache is split into two tiers, mirroring the two independent steps in the
 /// render pipeline:
 /// - **Extraction** (`ExtractionKey` — `character` + `font`): the raw, untransformed
 ///   glyph outline from `GlyphPathExtractor`, the expensive step.
 /// - **Render** (`RenderKey` — `character` + `font` + `layout` + `size`): the final
-///   transformed path from `GlyphLayoutResolver`, ready to fill.
+///   transformed path from `GlyphLayoutResolver`, ready to fill, positioned in a
+///   container whose origin is (0, 0).
 ///
 /// Splitting the tiers means a size- or layout-only change (the same character
 /// re-rendered at a different size, say) still reuses the extracted path and only

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-GlyphKit is a Swift Package (iOS 17+, Swift 6) that renders a single font glyph as a vector outline inside a SwiftUI `Canvas`, bypassing `UILabel`/text rendering entirely (no baseline shifts, no Dynamic Type interference). It extracts the glyph's `CGPath` via Core Text and draws it with point-precise sizing/placement.
+GlyphKit is a Swift Package (iOS 17+ / macOS 14+, Swift 6) that renders a single font glyph as a vector outline inside a SwiftUI `Canvas`, bypassing `UILabel`/`NSTextField`/text rendering entirely (no baseline shifts, no Dynamic Type interference). It extracts the glyph's `CGPath` via Core Text and draws it with point-precise sizing/placement.
 
 ## Commands
 
@@ -22,11 +22,14 @@ xcodebuild test -scheme GlyphKit -destination 'platform=iOS Simulator,name=iPhon
 
 xcodebuild test -scheme GlyphKit -destination 'platform=iOS Simulator,name=iPhone 16' \
   -only-testing:GlyphKitTests/GlyphLayoutResolverTests/scaleFactorConstrainedByWidth
+
+# Run all tests on macOS
+xcodebuild test -scheme GlyphKit -destination 'platform=macOS'
 ```
 
 Tests use the `Testing` framework (`@Suite` / `@Test` / `#expect`), not XCTest.
 
-CI (`.github/workflows/tests.yml`) runs the same `xcodebuild test` command on `macos-15` against `iPhone 16` simulator for pushes/PRs to `main`/`develop`. A second workflow (`deploy-documentation.yml`) builds the DocC archive via `xcodebuild docbuild` and publishes it to GitHub Pages on the same branches.
+CI (`.github/workflows/tests.yml`) runs the same `xcodebuild test` command on `macos-15` as a matrix over the `iPhone 16` simulator and `platform=macOS` for pushes/PRs to `main`/`develop`. A second workflow (`deploy-documentation.yml`) builds the DocC archive via `xcodebuild docbuild` and publishes it to GitHub Pages on the same branches.
 
 ## Architecture
 
@@ -48,7 +51,8 @@ When changing geometry logic, prefer testing the individual static methods on `G
 
 ## Notes
 
-- `GlyphKitFont.SystemFont` cases map to actual iOS font PostScript names (e.g. `.timesNewRoman` → `"TimesNewRomanPSMT"`) with a `.systemFont` fallback if the named font isn't installed — check `GlyphKitFont.swift` before adding a new system font case.
+- `GlyphKitFont.SystemFont` cases map to PostScript names of fonts that ship with iOS and macOS (e.g. `.timesNewRoman` → `"TimesNewRomanPSMT"`) with a system-font fallback if the named font isn't installed — check `GlyphKitFont.swift` before adding a new system font case, and make sure the font exists on both platforms.
+- `GlyphKitFont` resolves fonts with pure Core Text (no UIKit/AppKit), except `.sanFranciscoMono`: Core Text has no public API for SF Mono, so it uses `UIFont`/`NSFont.monospacedSystemFont` behind `#if canImport(UIKit)` / `#elseif canImport(AppKit)`. Keep any other platform-specific code out of the library; `#Preview`-only colors live in a private `Color` extension in `GlyphShape.swift`.
 - SwiftUI `#Preview` blocks in `GlyphShape.swift` double as living usage examples (multiple glyphs, layout variants, Shape styling, the README's own snippets) — keep them in sync with README examples when changing the public API.
 - New declarations use `///` DocC doc comments: a one-line summary, expanded with `- Parameters:`/`- Returns:` for non-trivial functions (see `GlyphShape.swift`, `GlyphLayoutResolver.swift`). Follow this for internal/private declarations too, not just `public` API.
 - When adding new functionality — whether public API or significant internal implementation (e.g. caching strategy) — update the corresponding documentation in the same change: DocC `///` comments, and README.md where relevant. The deploy-documentation.yml workflow publishes whatever documentation exists; it does not verify completeness or accuracy.
